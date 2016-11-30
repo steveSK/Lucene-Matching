@@ -31,16 +31,14 @@ public class LuceneMain {
 
 
     public static Analyzer analyzerToTest = new SkipGramAnalyzerWithTokenizer(1, 3);
-    private static final String FILE_TO_WRITE_RESULTS = "/home/stefan/matching-data/match_results";
     private static final String BLOCK_FIELD = "countries";
     private static final String SPELL_CHECKER_SOURCE_FIELD_NAME = "name";
     private static final List<String> fieldsToCheck = new ArrayList<>();
     private static final double minimalMatchRatio = 0.75;
+
     private String dataDir;
     private String wordsTomatchFile;
-
-    // private static  String dataDir = "/home/stefan/matching-data/wall-check-names-enterprise";
-    // private static  String wordsTomatchFile =  "/home/stefan/matching-data/names-to-check";
+    private String fileToWriteResults;
     IndexerHelper indexer;
     SearchHelper searcher;
 
@@ -79,13 +77,15 @@ public class LuceneMain {
             LuceneMain main = new LuceneMain();
             main.wordsTomatchFile = args[0];
             main.dataDir = args[1];
+            main.fileToWriteResults = args[2];
             LuceneSchema schema = new LuceneSchema(definitions);
             main.createComplexIndex(schema);
             main.makeSpellCheckerIndex();
+            main.initSearcher();
             System.out.println("Searching...");
             main.createMultipleSearch();
         } catch (IOException | ParseException e) {
-            e.printStackTrace();
+            System.out.println(e.toString());
         }
 
 
@@ -93,6 +93,10 @@ public class LuceneMain {
 
     public void createSimpleIndex() throws IOException {
         indexer.indexSimpleFile(new File(dataDir));
+    }
+
+    public void initSearcher() throws IOException {
+        searcher.init();
     }
 
     public void createComplexIndex(LuceneSchema schema) throws IOException {
@@ -113,7 +117,7 @@ public class LuceneMain {
 
     public void createMultipleSearch() throws IOException, ParseException {
         Map<String, TopDocs> results = searcher.matchAgainstFile(wordsTomatchFile, fieldsToCheck);
-        PrintWriter writer = new PrintWriter(FILE_TO_WRITE_RESULTS, "UTF-8");
+        PrintWriter writer = new PrintWriter(fileToWriteResults, "UTF-8");
         int i = 0;
         for (Map.Entry<String, TopDocs> result : results.entrySet()) {
             TopDocs topDocs = result.getValue();

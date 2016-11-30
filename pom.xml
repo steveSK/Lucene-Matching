@@ -63,7 +63,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>analyzer.test.LuceneMain</mainClass>
+                            <mainClass>matching.lucene.LuceneMain</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -73,7 +73,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>analyzer.test.LuceneMain</mainClass>
+                            <mainClass>matching.lucene.LuceneMain</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

@@ -1,6 +1,7 @@
 package matching.lucene.helpers;
 
 import matching.lucene.analyzers.NgramAnalyzer;
+import matching.lucene.comparators.BruteForceComparator;
 import matching.lucene.utils.LuceneUtils;
 import matching.lucene.utils.RecordToMatch;
 import matching.lucene.utils.SystemConstants;
@@ -26,24 +27,33 @@ public class SearchHelper {
 
 
     private final double minimumMatchRatio;
+    private final String indexDirectoryPath;
+    private final List<String> fieldsToCheck;
+    private final String blockField;
     private final int topResults = 10;
-    private final IndexSearcher searcher;
+    private IndexSearcher searcher;
     private final Analyzer analyzer;
-    private final StringSimiliratyComparator spellChecker;
+    private  StringSimiliratyComparator spellChecker;
 
     public SearchHelper(String indexDirectoryPath, List<String> fieldsToCheck, Analyzer analyzer, double minimumMatchRatio, String blockField) throws IOException {
+        this.indexDirectoryPath = indexDirectoryPath;
+        this.fieldsToCheck = fieldsToCheck;
+        this.analyzer = analyzer;
+        this.blockField = blockField;
+        this.minimumMatchRatio = minimumMatchRatio;
+    }
 
+    public void init()  throws IOException{
         //create the reader
         IndexReader reader = IndexReader.open(FSDirectory.open(new File(indexDirectoryPath)));
+        BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
         Map<String,List<String>> blockingDict = LuceneUtils.createBlocksDictionary(fieldsToCheck,reader,blockField);
         searcher = new IndexSearcher(reader);
-        this.analyzer = analyzer;
-        this.spellChecker = new LuceneSpellCheckerComparator(SystemConstants.INDEX_SPELL_CHECKER_DIR, new NGramDistance(analyzer, new NgramAnalyzer(2, 2)));
-//        this.spellChecker = new BruteForceComparator(blockingDict, new NGramDistance(analyzer, new NgramAnalyzer(2, 2)));
-        this.minimumMatchRatio = minimumMatchRatio;
-        BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
-        reader.close();
+        //choose which comparator to use
+        //    this.spellChecker = new LuceneSpellCheckerComparator(SystemConstants.INDEX_SPELL_CHECKER_DIR, new NGramDistance(analyzer, new NgramAnalyzer(2, 2)));
+        this.spellChecker = new BruteForceComparator(blockingDict, new NGramDistance(analyzer, new NgramAnalyzer(2, 2)));
     }
+
 
     public TopDocs search(String text,String field) throws ParseException, IOException {
         return searcher.search(buildBooleanQuery(text,field), topResults);

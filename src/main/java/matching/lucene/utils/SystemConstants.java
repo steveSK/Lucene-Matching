@@ -8,7 +8,7 @@ import java.util.Set;
  * Created by stefan on 11/30/16.
  */
 public class SystemConstants {
-    public static final String INDEX_SPELL_CHECKER_DIR = System.getProperty("user.home") + "spellchecker_index";
+    public static final String INDEX_SPELL_CHECKER_DIR = System.getProperty("user.home") + "/spellchecker_index";
     public static final String CSV_PARSER_DELIMETER = "\\|";
     public static final String INDEX_DIR = System.getProperty("user.home") + "/test_indexes";
 

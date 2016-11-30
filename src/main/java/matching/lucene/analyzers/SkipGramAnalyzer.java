@@ -33,7 +33,7 @@ public class SkipGramAnalyzer extends Analyzer {
     @Override
     public TokenStream tokenStream(String s, Reader reader) {
         Tokenizer tokenizer = new StandardTokenizer(Version.LUCENE_36,reader);
-        TokenStream lowerCase = new LowerCaseFilter(tokenizer);
+        TokenStream lowerCase = new LowerCaseFilter(Version.LUCENE_36,tokenizer);
         TokenStream filter = new SkipGramTokenFilter(lowerCase,skip,ngram);
         return filter;
     }
