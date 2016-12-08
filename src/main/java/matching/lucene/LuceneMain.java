@@ -10,12 +10,14 @@ import matching.lucene.schema.LuceneSchema;
 import matching.lucene.utils.SystemConstants;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.KeywordAnalyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.util.Version;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +47,7 @@ public class LuceneMain {
     public LuceneMain() throws IOException {
         indexer = new IndexerHelper(SystemConstants.INDEX_DIR, SystemConstants.INDEX_SPELL_CHECKER_DIR, analyzerToTest);
         indexer.clearIndex();
-        searcher = new SearchHelper(SystemConstants.INDEX_DIR, fieldsToCheck, analyzerToTest, minimalMatchRatio,BLOCK_FIELD);
+        searcher = new SearchHelper(SystemConstants.INDEX_DIR, fieldsToCheck, analyzerToTest, minimalMatchRatio,false, BLOCK_FIELD);
     }
     /*
      *   main method depends on the data feel free to modify
@@ -54,7 +56,7 @@ public class LuceneMain {
         try {
             List<LuceneFieldDefinition> definitions = new ArrayList<>();
             //small dataset
-            /*definitions.add(new LuceneFieldDefinition("UID", Field.Store.YES, Field.Index.NOT_ANALYZED));
+       /*       definitions.add(new LuceneFieldDefinition("UID", Field.Store.YES, Field.Index.NOT_ANALYZED));
               definitions.add(new LuceneFieldDefinition("name", Field.Store.YES, Field.Index.ANALYZED,new KeyWordAnalyzerLowerCase()));
               definitions.add(new LuceneFieldDefinition("country", Field.Store.YES, Field.Index.ANALYZED,new StandardAnalyzer(Version.LUCENE_36)));
               definitions.add(new LuceneFieldDefinition("city", Field.Store.YES, Field.Index.ANALYZED,new StandardAnalyzer(Version.LUCENE_36)));
@@ -62,7 +64,8 @@ public class LuceneMain {
               definitions.add(new LuceneFieldDefinition("type_ID", Field.Store.YES, Field.Index.NOT_ANALYZED));
               definitions.add(new LuceneFieldDefinition("number_ID", Field.Store.YES, Field.Index.NOT_ANALYZED));
               definitions.add(new LuceneFieldDefinition("street", Field.Store.YES, Field.Index.ANALYZED,new StandardAnalyzer(Version.LUCENE_36)));
-            */
+             fieldsToCheck.add(SPELL_CHECKER_SOURCE_FIELD_NAME);*/
+
             //big dataset
             Character del = ';';
             definitions.add(new LuceneFieldDefinition("full-name", Field.Store.YES, Field.Index.ANALYZED, new SplitAnalyzer(del)));

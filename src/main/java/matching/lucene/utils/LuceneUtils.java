@@ -61,14 +61,14 @@ public class LuceneUtils {
         return finalString.toString();
     }
 
-    public static List<String> readFile(String filepath, boolean removeSpecialCharacters) throws FileNotFoundException {
+    public static List<RecordToMatch>  readFile(String filepath, boolean removeSpecialCharacters) throws FileNotFoundException {
         Scanner s = new Scanner(new File(filepath)).useDelimiter("\\n");
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<RecordToMatch> list = new ArrayList<>();
         while (s.hasNext()) {
             if (removeSpecialCharacters) {
-                list.add(LuceneUtils.removeSpecialCharecters(s.next()));
+                list.add(new RecordToMatch(LuceneUtils.removeSpecialCharecters(s.next()),""));
             } else {
-                list.add(s.next());
+                list.add(new RecordToMatch(s.next(),""));
             }
         }
         s.close();
@@ -116,6 +116,7 @@ public class LuceneUtils {
                 continue;
 
             Document doc = reader.document(i);
+            System.out.println(doc);
             String key = doc.get(blockField).toLowerCase();
             if (!dict.containsKey(key)) {
                 dict.put(key, new ArrayList<>());

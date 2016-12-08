@@ -10,6 +10,7 @@ import java.util.Set;
 public class SystemConstants {
     public static final String INDEX_SPELL_CHECKER_DIR = System.getProperty("user.home") + "/spellchecker_index";
     public static final String CSV_PARSER_DELIMETER = "\\|";
+  // public static final String CSV_PARSER_DELIMETER = ",";
     public static final String INDEX_DIR = System.getProperty("user.home") + "/test_indexes";
 
     public final static Set<String> stopWords = new HashSet<String>(Arrays.asList(

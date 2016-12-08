@@ -7,25 +7,28 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by stefan on 11/30/16.
+ * Created by stefan on 11/2/16.
  */
-public class BruteForceComparator implements StringSimiliratyComparator {
-    private List<String> words;
+public class BlockingComparator implements StringSimiliratyComparator {
+    private Map<String,List<String>> blockingDictonary;
     private StringDistance distance;
 
-    public  BruteForceComparator(List<String> words, StringDistance distance){
-        this.distance = distance;
-        this.words = words;
+    public BlockingComparator(Map<String,List<String>> blockingDictonary, StringDistance distance){
+            this.distance = distance;
+            this.blockingDictonary = blockingDictonary;
     }
 
     public List<String> suggestSimilar(String word,String blockingKey, float accuracy){
         List<String> suggestedWords = new ArrayList<>();
-            for (String suggest : words) {
+        List<String>  block = blockingDictonary.get(blockingKey);
+        if(block!= null) {
+            for (String suggest : block) {
                 float acc = distance.getDistance(suggest, word);
                 if (acc >= accuracy) {
                     suggestedWords.add(suggest);
                 }
             }
+        }
         return  suggestedWords;
     }
 }

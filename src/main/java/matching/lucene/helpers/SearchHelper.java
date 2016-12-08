@@ -1,13 +1,14 @@
 package matching.lucene.helpers;
 
 import matching.lucene.analyzers.NgramAnalyzer;
+import matching.lucene.comparators.BlockingComparator;
 import matching.lucene.comparators.BruteForceComparator;
+import matching.lucene.comparators.LuceneSpellCheckerComparator;
 import matching.lucene.utils.LuceneUtils;
 import matching.lucene.utils.RecordToMatch;
-import matching.lucene.utils.SystemConstants;
-import matching.lucene.comparators.LuceneSpellCheckerComparator;
 import matching.lucene.distances.NGramDistance;
 import matching.lucene.comparators.StringSimiliratyComparator;
+import matching.lucene.utils.SystemConstants;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.*;
@@ -34,13 +35,15 @@ public class SearchHelper {
     private IndexSearcher searcher;
     private final Analyzer analyzer;
     private  StringSimiliratyComparator spellChecker;
+    private boolean blocking;
 
-    public SearchHelper(String indexDirectoryPath, List<String> fieldsToCheck, Analyzer analyzer, double minimumMatchRatio, String blockField) throws IOException {
+    public SearchHelper(String indexDirectoryPath, List<String> fieldsToCheck, Analyzer analyzer, double minimumMatchRatio,boolean blocking, String blockField) throws IOException {
         this.indexDirectoryPath = indexDirectoryPath;
         this.fieldsToCheck = fieldsToCheck;
         this.analyzer = analyzer;
         this.blockField = blockField;
         this.minimumMatchRatio = minimumMatchRatio;
+        blocking = true;
     }
 
     public void init()  throws IOException{
@@ -48,10 +51,12 @@ public class SearchHelper {
         IndexReader reader = IndexReader.open(FSDirectory.open(new File(indexDirectoryPath)));
         BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
         Map<String,List<String>> blockingDict = LuceneUtils.createBlocksDictionary(fieldsToCheck,reader,blockField);
+        List<String> words = LuceneUtils.readIndexField(fieldsToCheck,reader);
         searcher = new IndexSearcher(reader);
         //choose which comparator to use
-        //    this.spellChecker = new LuceneSpellCheckerComparator(SystemConstants.INDEX_SPELL_CHECKER_DIR, new NGramDistance(analyzer, new NgramAnalyzer(2, 2)));
-        this.spellChecker = new BruteForceComparator(blockingDict, new NGramDistance(analyzer, new NgramAnalyzer(2, 2)));
+         //   this.spellChecker = new LuceneSpellCheckerComparator(SystemConstants.INDEX_SPELL_CHECKER_DIR, new NGramDistance(analyzer, new NgramAnalyzer(2, 2)));
+        this.spellChecker = new BlockingComparator(blockingDict, new NGramDistance(analyzer, new NgramAnalyzer(2, 2)));
+       // this.spellChecker = new BruteForceComparator(words, new NGramDistance(analyzer, new NgramAnalyzer(2, 2)));
     }
 
 
@@ -99,10 +104,11 @@ public class SearchHelper {
         return queryBuilder;
     }
 
-    public Map<String,TopDocs> matchAgainstFile(String ToMatchFile,List<String> fields) throws IOException, ParseException {
+    public Map<String,TopDocs> matchAgainstFile(String toMatchFile,List<String> fields) throws IOException, ParseException {
         try {
             Map<String,TopDocs> matchingResults = new HashMap<>();
-            List<RecordToMatch> valuestoMatch = LuceneUtils.readFileWithBlockingCriteria(ToMatchFile,"\\|",true);
+            List<RecordToMatch> valuestoMatch = LuceneUtils.readFileWithBlockingCriteria(toMatchFile,"\\|",true);
+         //   List<RecordToMatch> valuestoMatch = LuceneUtils.readFile(toMatchFile,true);
             int i = 0;
             for(RecordToMatch record : valuestoMatch){
                 if(!record.getValueToMatch().isEmpty()) {
