@@ -1,9 +1,11 @@
 package matching.lucene.analyzers;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.KeywordTokenizer;
-import org.apache.lucene.analysis.LowerCaseFilter;
+
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.core.KeywordTokenizer;
+import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.util.Version;
 
 import java.io.Reader;
@@ -13,10 +15,9 @@ import java.io.Reader;
  */
 public class KeyWordAnalyzerLowerCase extends Analyzer{
 
-    public  KeyWordAnalyzerLowerCase(){}
-
-
-    public TokenStream tokenStream(String fieldName, Reader reader) {
-        return new LowerCaseFilter(Version.LUCENE_36, new KeywordTokenizer(reader));
+    public TokenStreamComponents createComponents(String field) {
+        Tokenizer tokenizer = new KeywordTokenizer();
+        TokenStream filter = new LowerCaseFilter(tokenizer);
+        return new Analyzer.TokenStreamComponents(tokenizer,filter);
     }
 }

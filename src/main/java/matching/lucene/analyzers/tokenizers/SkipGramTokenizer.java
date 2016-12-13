@@ -1,11 +1,12 @@
 package matching.lucene.analyzers.tokenizers;
 
-import matching.lucene.utils.CharacterUtils;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute;
+import org.apache.lucene.analysis.util.CharacterUtils;
+import org.apache.lucene.util.AttributeFactory;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -35,14 +36,13 @@ public class SkipGramTokenizer extends Tokenizer {
     private final PositionLengthAttribute posLenAtt = addAttribute(PositionLengthAttribute.class);
     private final OffsetAttribute offsetAtt = addAttribute(OffsetAttribute.class);
 
-    public SkipGramTokenizer(Reader reader, int skipGram, int nGram) {
-        super(reader);
+    public SkipGramTokenizer(int skipGram, int nGram) {
         init(skipGram, nGram);
     }
 
 
-    public SkipGramTokenizer(AttributeFactory factory, Reader reader, int skipGram, int nGram, boolean edgesOnly) {
-        super(factory,reader);
+    public SkipGramTokenizer(AttributeFactory factory, int skipGram, int nGram) {
+        super(factory);
         init(skipGram, nGram);
     }
 
@@ -53,14 +53,14 @@ public class SkipGramTokenizer extends Tokenizer {
      * @param nGram the largest n-gram to generate
      */
     public SkipGramTokenizer(AttributeFactory factory, Reader reader, int skipGram, int nGram) {
-        this(factory, reader, skipGram, nGram, false);
+        this(factory, skipGram, nGram);
     }
 
     /**
      * Creates NGramTokenizer with default min and max n-grams.
      */
-    public SkipGramTokenizer(Reader reader) {
-        this(reader, DEFAULT_MIN_SKIPGRAM_SIZE, DEFAULT_MAX_NGRAM_SIZE);
+    public SkipGramTokenizer() {
+        this(DEFAULT_MIN_SKIPGRAM_SIZE, DEFAULT_MAX_NGRAM_SIZE);
     }
 
     private void init(int skipGram, int maxGram) {
@@ -72,6 +72,7 @@ public class SkipGramTokenizer extends Tokenizer {
         }
         this.skipGram = maxGram;
         this.nGram = maxGram;
+        this.charUtils = CharacterUtils.getInstance();
         charBuffer = CharacterUtils.newCharacterBuffer(2 * maxGram + 1024); // 2 * nGram in case all code points require 2 chars and + 1024 for buffering to not keep polling the Reader
         buffer = new int[charBuffer.getBuffer().length];
         currSkipOffset = 1;

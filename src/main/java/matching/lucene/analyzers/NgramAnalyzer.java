@@ -22,7 +22,7 @@ public class NgramAnalyzer extends Analyzer {
 
 
     @Override
-    public TokenStream tokenStream(String s, Reader reader) {
-        return new NGramTokenizer(reader,minGram,maxGram);
+    public TokenStreamComponents createComponents(String fieldName) {
+        return new Analyzer.TokenStreamComponents(new NGramTokenizer(minGram,maxGram));
     }
 }

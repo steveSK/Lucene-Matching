@@ -1,7 +1,9 @@
 package matching.lucene.analyzers.tokenizers;
 
-import org.apache.lucene.analysis.CharTokenizer;
-import org.apache.lucene.util.Version;
+
+
+import org.apache.lucene.analysis.util.CharTokenizer;
+import org.apache.lucene.util.AttributeFactory;
 
 import java.io.Reader;
 
@@ -14,8 +16,8 @@ public class DelimeterTokenizer extends CharTokenizer {
     private final Character delimeter;
 
 
-    public DelimeterTokenizer(Character delimeter, Reader reader) {
-        super(Version.LUCENE_36, reader);
+    public DelimeterTokenizer(Character delimeter) {
+        super();
         this.delimeter = delimeter;
     }
 

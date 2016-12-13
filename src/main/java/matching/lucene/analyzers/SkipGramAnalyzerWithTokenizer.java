@@ -2,6 +2,7 @@ package matching.lucene.analyzers;
 
 import matching.lucene.analyzers.tokenizers.SkipGramTokenizer;
 import org.apache.lucene.analysis.*;
+import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.util.Version;
 
 import java.io.Reader;
@@ -25,8 +26,9 @@ public class SkipGramAnalyzerWithTokenizer extends Analyzer {
         * of token filters that operate on it.
         */
     @Override
-    public TokenStream tokenStream(String s, Reader reader) {
-        Tokenizer tokenizer = new SkipGramTokenizer(reader, skip,ngram);
-        return new LowerCaseFilter(Version.LUCENE_36,tokenizer);
+    public TokenStreamComponents createComponents(String s) {
+        Tokenizer tokenizer = new SkipGramTokenizer(skip,ngram);
+        TokenStream filter = new LowerCaseFilter(tokenizer);
+        return new Analyzer.TokenStreamComponents(tokenizer,filter);
     }
 }

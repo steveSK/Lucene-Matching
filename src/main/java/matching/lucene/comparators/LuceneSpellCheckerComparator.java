@@ -19,7 +19,7 @@ public class LuceneSpellCheckerComparator implements StringSimiliratyComparator 
 
 
     public LuceneSpellCheckerComparator(String indexSpellCheckerDir, StringDistance distance) throws IOException {
-        this.spellChecker = new SpellChecker(FSDirectory.open(new File(indexSpellCheckerDir), NoLockFactory.getNoLockFactory()),distance);
+        this.spellChecker = new SpellChecker(FSDirectory.open(new File(indexSpellCheckerDir).toPath()),distance);
     }
 
     public List<String> suggestSimilar(String word,String blockingKey, float accuracy) throws IOException {

@@ -16,8 +16,9 @@ public class NgramAnalyzerWithFilter extends Analyzer {
 
 
     @Override
-    public TokenStream tokenStream(String s, Reader reader) {
-        Tokenizer tokenizer = new StandardTokenizer(Version.LUCENE_36,reader);
-        return new  NGramTokenFilter(tokenizer,3,3);
+    public  TokenStreamComponents createComponents(String field) {
+        Tokenizer tokenizer = new StandardTokenizer();
+        TokenStream filter = new NGramTokenFilter(tokenizer,3,3);
+        return new Analyzer.TokenStreamComponents(tokenizer,filter);
     }
 }

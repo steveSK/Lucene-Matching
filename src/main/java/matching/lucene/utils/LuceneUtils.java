@@ -5,9 +5,7 @@ import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermEnum;
+import org.apache.lucene.index.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,7 +19,7 @@ import java.util.*;
  */
 public class LuceneUtils {
 
-    public static List<List<String>> parseKeywords(Analyzer analyzer, String field, String keywords) {
+    public static List<List<String>> parseKeywords(Analyzer analyzer, String field, String keywords) throws IOException {
         List<List<String>> result = new ArrayList<>();
         TokenStream stream = analyzer.tokenStream(field, new StringReader(keywords));
         try {
@@ -61,14 +59,14 @@ public class LuceneUtils {
         return finalString.toString();
     }
 
-    public static List<RecordToMatch>  readFile(String filepath, boolean removeSpecialCharacters) throws FileNotFoundException {
+    public static List<RecordToMatch> readFile(String filepath, boolean removeSpecialCharacters) throws FileNotFoundException {
         Scanner s = new Scanner(new File(filepath)).useDelimiter("\\n");
         ArrayList<RecordToMatch> list = new ArrayList<>();
         while (s.hasNext()) {
             if (removeSpecialCharacters) {
-                list.add(new RecordToMatch(LuceneUtils.removeSpecialCharecters(s.next()),""));
+                list.add(new RecordToMatch(LuceneUtils.removeSpecialCharecters(s.next()), ""));
             } else {
-                list.add(new RecordToMatch(s.next(),""));
+                list.add(new RecordToMatch(s.next(), ""));
             }
         }
         s.close();
@@ -95,16 +93,18 @@ public class LuceneUtils {
         return list;
     }
 
-    public static List<String> readIndexField(List<String> fields, IndexReader reader) throws IOException {
-        TermEnum terms = reader.terms(new Term(fields.get(0)));
+    public static List<String> readIndexField(List<String> fields0, IndexReader reader) throws IOException {
+
+        Fields fields = MultiFields.getFields(reader);
         List<String> words = new LinkedList<>();
-        if (terms.term() != null) {
-            do {
-                Term term = terms.term();
-                if (fields.contains(term.field())) {
-                    words.add(term.text());
+        for (String field : fields) {
+            if (fields0.contains(field)) {
+                Terms terms = fields.terms(field);
+                TermsEnum termsEnum = terms.iterator();
+                while (termsEnum.next() != null) {
+                    words.add(new String(termsEnum.term().bytes, "UTF-8"));
                 }
-            } while (terms.next());
+            }
         }
         return words;
     }
@@ -112,9 +112,6 @@ public class LuceneUtils {
     public static Map<String, List<String>> createBlocksDictionary(List<String> fields, IndexReader reader, String blockField) throws IOException {
         Map<String, List<String>> dict = new HashMap<>();
         for (int i = 0; i < reader.maxDoc(); i++) {
-            if (reader.isDeleted(i))
-                continue;
-
             Document doc = reader.document(i);
             System.out.println(doc);
             String key = doc.get(blockField).toLowerCase();

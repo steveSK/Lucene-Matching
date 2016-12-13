@@ -4,6 +4,8 @@ import matching.lucene.utils.LuceneUtils;
 import matching.lucene.analyzers.filters.StopWordsSubStringFilter;
 import matching.lucene.utils.SystemConstants;
 import org.apache.lucene.analysis.*;
+import org.apache.lucene.analysis.core.KeywordTokenizer;
+import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.util.Version;
 
 import java.io.Reader;
@@ -13,12 +15,10 @@ import java.io.Reader;
  */
 public class KeyWordAnalyzerWithStopWords extends Analyzer{
 
-    public KeyWordAnalyzerWithStopWords () {
-    }
-
-    public TokenStream  tokenStream(String fieldName, Reader reader) {
-        TokenStream tokenizer = new KeywordTokenizer(reader);
-        return new StopWordsSubStringFilter(new LowerCaseFilter(Version.LUCENE_36,tokenizer), SystemConstants.stopWords);
+    public TokenStreamComponents createComponents(String fieldName) {
+        Tokenizer tokenizer = new KeywordTokenizer();
+        TokenStream filter = new StopWordsSubStringFilter(new LowerCaseFilter(tokenizer), SystemConstants.stopWords);
+        return new Analyzer.TokenStreamComponents(tokenizer,filter);
     }
 
 

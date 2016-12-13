@@ -9,15 +9,13 @@ import matching.lucene.schema.LuceneFieldDefinition;
 import matching.lucene.schema.LuceneSchema;
 import matching.lucene.utils.SystemConstants;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.KeywordAnalyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.Fieldable;
-import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.util.Version;
 
 import java.io.File;
 import java.io.IOException;
@@ -130,7 +128,7 @@ public class LuceneMain {
                 Document doc = searcher.getDocument(scoreDoc);
                 System.out.println("Matched: " + result.getKey());
                 writer.println("Matched: " + result.getKey());
-                for (Fieldable field : doc.getFields()) {
+                for (IndexableField field : doc.getFields()) {
                     System.out.println("SCORE: " + scoreDoc.score);
                     writer.println("SCORE: " + scoreDoc.score);
                     System.out.print(field.name() + ": " + field.stringValue());

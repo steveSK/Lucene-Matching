@@ -12,7 +12,6 @@ import matching.lucene.utils.SystemConstants;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.*;
-import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.FSDirectory;
 
@@ -48,7 +47,7 @@ public class SearchHelper {
 
     public void init()  throws IOException{
         //create the reader
-        IndexReader reader = IndexReader.open(FSDirectory.open(new File(indexDirectoryPath)));
+        IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(indexDirectoryPath).toPath()));
         BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
         Map<String,List<String>> blockingDict = LuceneUtils.createBlocksDictionary(fieldsToCheck,reader,blockField);
         List<String> words = LuceneUtils.readIndexField(fieldsToCheck,reader);
@@ -60,11 +59,11 @@ public class SearchHelper {
     }
 
 
-    public TopDocs search(String text,String field) throws ParseException, IOException {
+    public TopDocs search(String text,String field) throws IOException {
         return searcher.search(buildBooleanQuery(text,field), topResults);
     }
 
-    public TopDocs searchWithSpellchecker(String text,String blockingKey, List<String> fields) throws ParseException, IOException {
+    public TopDocs searchWithSpellchecker(String text,String blockingKey, List<String> fields) throws IOException {
        List<String> composedNames = spellChecker.suggestSimilar(text.toLowerCase(),blockingKey, (float) minimumMatchRatio);
         BooleanQuery finalQuery = new BooleanQuery();
         if(composedNames.size() != 0) {
@@ -87,7 +86,7 @@ public class SearchHelper {
     }
 
 
-    private Query buildBooleanQuery(String string,String field) throws ParseException{
+    private Query buildBooleanQuery(String string,String field) throws IOException {
         List<List<String>> terms = LuceneUtils.parseKeywords(analyzer,field,string);
         BooleanQuery queryBuilder = new BooleanQuery();
         for(List<String> list : terms){
@@ -104,7 +103,7 @@ public class SearchHelper {
         return queryBuilder;
     }
 
-    public Map<String,TopDocs> matchAgainstFile(String toMatchFile,List<String> fields) throws IOException, ParseException {
+    public Map<String,TopDocs> matchAgainstFile(String toMatchFile,List<String> fields) throws IOException {
         try {
             Map<String,TopDocs> matchingResults = new HashMap<>();
             List<RecordToMatch> valuestoMatch = LuceneUtils.readFileWithBlockingCriteria(toMatchFile,"\\|",true);

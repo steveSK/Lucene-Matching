@@ -2,11 +2,14 @@ package matching.lucene.analyzers;
 
 import matching.lucene.analyzers.tokenizers.DelimeterTokenizer;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.LowerCaseFilter;
+
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.core.LowerCaseFilter;
+import org.apache.lucene.analysis.miscellaneous.TrimFilter;
+import org.apache.lucene.analysis.pattern.PatternReplaceFilter;
 import org.apache.lucene.util.Version;
-import org.apache.solr.analysis.PatternReplaceFilter;
-import org.apache.solr.analysis.TrimFilter;
+
 
 import java.io.Reader;
 import java.util.regex.Pattern;
@@ -23,7 +26,11 @@ public class SplitAnalyzer extends Analyzer {
     }
 
 
-    public TokenStream tokenStream(String fieldName, Reader reader) {
-        return new LowerCaseFilter(Version.LUCENE_36, new PatternReplaceFilter(new TrimFilter(new DelimeterTokenizer(delimeter,reader),true),Pattern.compile("[^a-zA-Z0-9\\s]"), "", true));
+    public TokenStreamComponents createComponents(String fieldName) {
+        Tokenizer tokenizer = new DelimeterTokenizer(delimeter);
+        TokenStream trimFilter = new TrimFilter(tokenizer);
+        TokenStream patternReplaceFilter = new PatternReplaceFilter(trimFilter,Pattern.compile("[^a-zA-Z0-9\\s]"), "", true);
+        TokenStream lowerCaseFilter = new LowerCaseFilter(patternReplaceFilter);
+        return new Analyzer.TokenStreamComponents(tokenizer,lowerCaseFilter);
     }
 }
