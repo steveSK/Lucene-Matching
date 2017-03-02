@@ -1,5 +1,6 @@
 package matching.lucene.distances;
 
+import matching.lucene.utils.DistanceUtils;
 import matching.lucene.utils.LuceneUtils;
 import matching.lucene.utils.SystemConstants;
 import org.apache.lucene.analysis.Analyzer;
@@ -8,6 +9,8 @@ import org.apache.lucene.search.spell.StringDistance;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static matching.lucene.utils.DistanceUtils.normalizeString;
 
 /**
  * Created by stefan on 10/26/16.
@@ -21,13 +24,6 @@ public class NGramDistance implements StringDistance {
     public NGramDistance(Analyzer mainAnalyzer, Analyzer shortAnalyzer) {
         this.mainAnalyzer = mainAnalyzer;
         this.shortAnalyzer = shortAnalyzer;
-    }
-
-    private int gramMatches(List<String> grams1, List<String> grams2) {
-        List<String> common = new ArrayList<String>(grams1);
-        common.retainAll(grams2);
-        return common.size();
-
     }
 
     @Override
@@ -53,7 +49,7 @@ public class NGramDistance implements StringDistance {
                 } else {
                     shortestStringSize = terms2.size();
                 }
-                float matchCount = gramMatches(terms1, terms2);
+                float matchCount = DistanceUtils.termMatches(terms1, terms2);
                 return matchCount / shortestStringSize;
             }
         } catch (IOException e) {
@@ -62,7 +58,5 @@ public class NGramDistance implements StringDistance {
         return 0;
     }
 
-    private String normalizeString(String stringToNormalize) {
-        return LuceneUtils.removeStopWordsFromString(stringToNormalize.toLowerCase(), SystemConstants.stopWords);
-    }
+
 }

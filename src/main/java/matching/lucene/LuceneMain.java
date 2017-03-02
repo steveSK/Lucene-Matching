@@ -3,6 +3,11 @@ package matching.lucene;
 import matching.lucene.analyzers.KeyWordAnalyzerLowerCase;
 import matching.lucene.analyzers.SkipGramAnalyzerWithTokenizer;
 import matching.lucene.analyzers.SplitAnalyzer;
+import matching.lucene.differences.ConsonantsDifference;
+import matching.lucene.differences.VowelsDifference;
+import matching.lucene.distances.DoubleMetaphoneDistance;
+import matching.lucene.distances.LCSDistance;
+import matching.lucene.distances.NameFrequencyDistance;
 import matching.lucene.helpers.IndexerHelper;
 import matching.lucene.helpers.SearchHelper;
 import matching.lucene.schema.LuceneFieldDefinition;
@@ -18,6 +23,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -32,6 +38,7 @@ public class LuceneMain {
 
     public static Analyzer analyzerToTest = new SkipGramAnalyzerWithTokenizer(1, 3);
     private static final String BLOCK_FIELD = "countries";
+    private static final String NAME_FREQUENCY_LIST = "/home/stefan/matching-data/name-frequencies";
     private static final String SPELL_CHECKER_SOURCE_FIELD_NAME = "name";
     private static final List<String> fieldsToCheck = new ArrayList<>();
     private static final double minimalMatchRatio = 0.75;
@@ -51,8 +58,18 @@ public class LuceneMain {
      *   main method depends on the data feel free to modify
      */
     public static void main(String[] args) {
-        try {
+       // try {
             List<LuceneFieldDefinition> definitions = new ArrayList<>();
+        NameFrequencyDistance distance = null;
+        try {
+            distance = new NameFrequencyDistance(NAME_FREQUENCY_LIST);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        System.out.println(distance.getDistance("stefan repcek","stefan repcik"));
+
+
+
             //small dataset
        /*       definitions.add(new LuceneFieldDefinition("UID", Field.Store.YES, Field.Index.NOT_ANALYZED));
               definitions.add(new LuceneFieldDefinition("name", Field.Store.YES, Field.Index.ANALYZED,new KeyWordAnalyzerLowerCase()));
@@ -65,7 +82,7 @@ public class LuceneMain {
              fieldsToCheck.add(SPELL_CHECKER_SOURCE_FIELD_NAME);*/
 
             //big dataset
-            Character del = ';';
+      /*      Character del = ';';
             definitions.add(new LuceneFieldDefinition("full-name", Field.Store.YES, Field.Index.ANALYZED, new SplitAnalyzer(del)));
             definitions.add(new LuceneFieldDefinition("aliasis", Field.Store.YES, Field.Index.ANALYZED, new SplitAnalyzer(del)));
             definitions.add(new LuceneFieldDefinition("low-qal-aliasis", Field.Store.YES, Field.Index.ANALYZED, new SplitAnalyzer(del)));
@@ -87,7 +104,7 @@ public class LuceneMain {
             main.createMultipleSearch();
         } catch (IOException | ParseException e) {
             System.out.println(e.toString());
-        }
+        } */
 
 
     }
