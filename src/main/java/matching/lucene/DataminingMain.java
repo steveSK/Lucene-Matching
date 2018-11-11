@@ -1,7 +1,7 @@
 package matching.lucene;
 
 import matching.lucene.analyzers.SkipGramAnalyzerWithTokenizer;
-import matching.lucene.datamining.WallCheckAliases;
+import matching.lucene.datamining.WorldCheckAliases;
 import org.apache.lucene.analysis.Analyzer;
 
 import java.io.FileNotFoundException;
@@ -18,9 +18,16 @@ public class DataminingMain {
     private static String outputTPFile = "/home/stefan/matching-data/true-aliases-set";
     private static double similarityRatio = 0.8;
 
+    /***
+     * This is the main class for generating a experimenting dataset
+     *
+     * @param args
+     * @throws FileNotFoundException
+     * @throws UnsupportedEncodingException
+     */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         System.out.println("Start with mining: ");
-        WallCheckAliases wch = new WallCheckAliases(analyzer,inputFile,outputFPFile,outputTPFile,similarityRatio);
+        WorldCheckAliases wch = new WorldCheckAliases(analyzer,inputFile,outputFPFile,outputTPFile,similarityRatio);
         wch.generateSimilarFalseMatches();
         wch.generateSimilarTrueMatches();
 

@@ -18,7 +18,7 @@ import java.util.Scanner;
 /**
  * Created by stefan on 12/6/16.
  */
-public class WallCheckAliases {
+public class WorldCheckAliases {
 
     private static double minimalSimilarityforTP = 0.4;
 
@@ -30,7 +30,7 @@ public class WallCheckAliases {
     private final double similarityTreshold;
 
 
-    public WallCheckAliases(Analyzer analyzer, String aliasesNamesFile, String outputFPFile, String outputTPFile, double similarityTreshold) throws FileNotFoundException {
+    public WorldCheckAliases(Analyzer analyzer, String aliasesNamesFile, String outputFPFile, String outputTPFile, double similarityTreshold) throws FileNotFoundException {
         this.aliasesNamesFile = aliasesNamesFile;
         this.outputFPFile = outputFPFile;
         this.outputTPFile = outputTPFile;
@@ -52,6 +52,7 @@ public class WallCheckAliases {
             listCopy.remove(aliases);
             List<String> otherNames = new ArrayList<>();
             listCopy.forEach(otherNames::addAll);
+
             for (String s : aliases) {
                 if (s.split(" ").length == 1) {
                     continue;

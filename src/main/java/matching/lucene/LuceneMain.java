@@ -54,8 +54,8 @@ public class LuceneMain {
         indexer.clearIndex();
         searcher = new SearchHelper(SystemConstants.INDEX_DIR, fieldsToCheck, analyzerToTest, minimalMatchRatio,false, BLOCK_FIELD);
     }
-    /*
-     *   main method depends on the data feel free to modify
+    /***
+     *   main method depends on the data you dealing with, feel free to modify and import your datasets
      */
     public static void main(String[] args) {
        // try {
@@ -67,44 +67,6 @@ public class LuceneMain {
             e.printStackTrace();
         }
         System.out.println(distance.getDistance("stefan repcek","stefan repcik"));
-
-
-
-            //small dataset
-       /*       definitions.add(new LuceneFieldDefinition("UID", Field.Store.YES, Field.Index.NOT_ANALYZED));
-              definitions.add(new LuceneFieldDefinition("name", Field.Store.YES, Field.Index.ANALYZED,new KeyWordAnalyzerLowerCase()));
-              definitions.add(new LuceneFieldDefinition("country", Field.Store.YES, Field.Index.ANALYZED,new StandardAnalyzer(Version.LUCENE_36)));
-              definitions.add(new LuceneFieldDefinition("city", Field.Store.YES, Field.Index.ANALYZED,new StandardAnalyzer(Version.LUCENE_36)));
-              definitions.add(new LuceneFieldDefinition("country_ID", Field.Store.YES, Field.Index.NOT_ANALYZED));
-              definitions.add(new LuceneFieldDefinition("type_ID", Field.Store.YES, Field.Index.NOT_ANALYZED));
-              definitions.add(new LuceneFieldDefinition("number_ID", Field.Store.YES, Field.Index.NOT_ANALYZED));
-              definitions.add(new LuceneFieldDefinition("street", Field.Store.YES, Field.Index.ANALYZED,new StandardAnalyzer(Version.LUCENE_36)));
-             fieldsToCheck.add(SPELL_CHECKER_SOURCE_FIELD_NAME);*/
-
-            //big dataset
-      /*      Character del = ';';
-            definitions.add(new LuceneFieldDefinition("full-name", Field.Store.YES, Field.Index.ANALYZED, new SplitAnalyzer(del)));
-            definitions.add(new LuceneFieldDefinition("aliasis", Field.Store.YES, Field.Index.ANALYZED, new SplitAnalyzer(del)));
-            definitions.add(new LuceneFieldDefinition("low-qal-aliasis", Field.Store.YES, Field.Index.ANALYZED, new SplitAnalyzer(del)));
-            definitions.add(new LuceneFieldDefinition("countries", Field.Store.YES, Field.Index.ANALYZED, new KeyWordAnalyzerLowerCase()));
-            definitions.add(new LuceneFieldDefinition("person-type", Field.Store.YES, Field.Index.ANALYZED, new KeywordAnalyzer()));
-            fieldsToCheck.add("full-name");
-            fieldsToCheck.add("aliasis");
-            fieldsToCheck.add("low-qal-aliasis");
-
-            LuceneMain main = new LuceneMain();
-            main.wordsTomatchFile = args[0];
-            main.dataDir = args[1];
-            main.fileToWriteResults = args[2];
-            LuceneSchema schema = new LuceneSchema(definitions);
-            main.createComplexIndex(schema);
-            main.makeSpellCheckerIndex();
-            main.initSearcher();
-            System.out.println("Searching...");
-            main.createMultipleSearch();
-        } catch (IOException | ParseException e) {
-            System.out.println(e.toString());
-        } */
 
 
     }
