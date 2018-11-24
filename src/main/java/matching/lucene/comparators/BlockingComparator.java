@@ -10,6 +10,8 @@ import java.util.Map;
  * Created by stefan on 11/2/16.
  */
 public class BlockingComparator implements StringSimiliratyComparator {
+
+
     private Map<String,List<String>> blockingDictonary;
     private StringDistance distance;
 
@@ -18,6 +20,7 @@ public class BlockingComparator implements StringSimiliratyComparator {
             this.blockingDictonary = blockingDictonary;
     }
 
+    @Override
     public List<String> suggestSimilar(String word,String blockingKey, float accuracy){
         List<String> suggestedWords = new ArrayList<>();
         List<String>  block = blockingDictonary.get(blockingKey);

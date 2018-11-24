@@ -22,7 +22,8 @@ public class LuceneSpellCheckerComparator implements StringSimiliratyComparator 
         this.spellChecker = new SpellChecker(FSDirectory.open(new File(indexSpellCheckerDir).toPath()),distance);
     }
 
-    public List<String> suggestSimilar(String word,String blockingKey, float accuracy) throws IOException {
+    @Override
+    public List<String> suggestSimilar(String word, String blockingKey, float accuracy) throws IOException {
         return Arrays.asList(spellChecker.suggestSimilar(word, NUM_SUG, accuracy));
     }
 }

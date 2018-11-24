@@ -8,5 +8,5 @@ import java.util.List;
  */
 public interface StringSimiliratyComparator {
 
-    public List<String> suggestSimilar(String word, String blockingKey, float accuracy) throws IOException;
+    List<String> suggestSimilar(String word, String blockingKey, float accuracy) throws IOException;
 }

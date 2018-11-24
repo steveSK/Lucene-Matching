@@ -18,7 +18,8 @@ public class BruteForceComparator implements StringSimiliratyComparator {
         this.words = words;
     }
 
-    public List<String> suggestSimilar(String word,String blockingKey, float accuracy){
+    @Override
+    public List<String> suggestSimilar(String word, String blockingKey, float accuracy){
         List<String> suggestedWords = new ArrayList<>();
             for (String suggest : words) {
                 float acc = distance.getDistance(suggest, word);

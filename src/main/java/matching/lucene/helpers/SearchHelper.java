@@ -36,6 +36,7 @@ public class SearchHelper {
     private  StringSimiliratyComparator spellChecker;
     private boolean blocking;
 
+
     public SearchHelper(String indexDirectoryPath, List<String> fieldsToCheck, Analyzer analyzer, double minimumMatchRatio,boolean blocking, String blockField) throws IOException {
         this.indexDirectoryPath = indexDirectoryPath;
         this.fieldsToCheck = fieldsToCheck;
@@ -53,9 +54,7 @@ public class SearchHelper {
         List<String> words = LuceneUtils.readIndexField(fieldsToCheck,reader);
         searcher = new IndexSearcher(reader);
         //choose which comparator to use
-         //   this.spellChecker = new LuceneSpellCheckerComparator(SystemConstants.INDEX_SPELL_CHECKER_DIR, new NGramDistance(analyzer, new NgramAnalyzer(2, 2)));
         this.spellChecker = new BlockingComparator(blockingDict, new NGramDistance(analyzer, new NgramAnalyzer(2, 2)));
-       // this.spellChecker = new BruteForceComparator(words, new NGramDistance(analyzer, new NgramAnalyzer(2, 2)));
     }
 
 
@@ -63,12 +62,12 @@ public class SearchHelper {
         return searcher.search(buildBooleanQuery(text,field), topResults);
     }
 
-    public TopDocs searchWithSpellchecker(String text,String blockingKey, List<String> fields) throws IOException {
+    public TopDocs searchWithSpellchecker(String text,String blockingKey) throws IOException {
        List<String> composedNames = spellChecker.suggestSimilar(text.toLowerCase(),blockingKey, (float) minimumMatchRatio);
         BooleanQuery finalQuery = new BooleanQuery();
         if(composedNames.size() != 0) {
             for (int a = 0; a < composedNames.size(); a++) {
-                for(String field : fields) {
+                for(String field : fieldsToCheck) {
                     String value = LuceneUtils.removeSpecialCharecters(composedNames.get(a)).toLowerCase();
                     PrefixQuery prefixQuery = new PrefixQuery(new Term(field, value));
                     finalQuery.add(prefixQuery, BooleanClause.Occur.SHOULD);
@@ -86,7 +85,7 @@ public class SearchHelper {
     }
 
 
-    private Query buildBooleanQuery(String string,String field) throws IOException {
+    private Query buildBooleanQuery(String string, String field) throws IOException {
         List<List<String>> terms = LuceneUtils.parseKeywords(analyzer,field,string);
         BooleanQuery queryBuilder = new BooleanQuery();
         for(List<String> list : terms){
@@ -103,7 +102,7 @@ public class SearchHelper {
         return queryBuilder;
     }
 
-    public Map<String,TopDocs> matchAgainstFile(String toMatchFile,List<String> fields) throws IOException {
+    public Map<String,TopDocs> matchAgainstFile(String toMatchFile) throws IOException {
         try {
             Map<String,TopDocs> matchingResults = new HashMap<>();
             List<RecordToMatch> valuestoMatch = LuceneUtils.readFileWithBlockingCriteria(toMatchFile,"\\|",true);
@@ -112,7 +111,7 @@ public class SearchHelper {
             for(RecordToMatch record : valuestoMatch){
                 if(!record.getValueToMatch().isEmpty()) {
                     System.out.println("Matching record " + i + ": " + record.getValueToMatch());
-                    TopDocs res = searchWithSpellchecker(record.getValueToMatch(),record.getBlockingCriteria(), fields);
+                    TopDocs res = searchWithSpellchecker(record.getValueToMatch(),record.getBlockingCriteria());
                     if (res.totalHits > 0) {
                         matchingResults.put(record.getValueToMatch(),res);
                     }
