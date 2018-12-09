@@ -1,5 +1,6 @@
 package matching.lucene.comparators;
 
+import matching.lucene.utils.RecordToMatch;
 import org.apache.lucene.search.spell.StringDistance;
 
 import java.util.ArrayList;
@@ -12,21 +13,20 @@ import java.util.Map;
 public class BlockingComparator implements StringSimiliratyComparator {
 
 
-    private Map<String,List<String>> blockingDictonary;
-    private StringDistance distance;
-
+    private final Map<String,List<String>> blockingDictonary;
+    private final StringDistance distance;
     public BlockingComparator(Map<String,List<String>> blockingDictonary, StringDistance distance){
-            this.distance = distance;
-            this.blockingDictonary = blockingDictonary;
+        this.blockingDictonary = blockingDictonary;
+        this.distance = distance;
     }
 
     @Override
-    public List<String> suggestSimilar(String word,String blockingKey, float accuracy){
+    public List<String> suggestSimilar(RecordToMatch recordToMatch, float accuracy){
         List<String> suggestedWords = new ArrayList<>();
-        List<String>  block = blockingDictonary.get(blockingKey);
+        List<String>  block = blockingDictonary.get(recordToMatch.getBlockingCriteria());
         if(block!= null) {
             for (String suggest : block) {
-                float acc = distance.getDistance(suggest, word);
+                float acc = distance.getDistance(suggest, recordToMatch.getValueToMatch());
                 if (acc >= accuracy) {
                     suggestedWords.add(suggest);
                 }

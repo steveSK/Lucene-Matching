@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by stefan on 12/14/16.
  */
-public class DistanceUtils {
+public final class DistanceUtils {
 
 
     public static int termMatches(List<String> terms1, List<String> terms2) {

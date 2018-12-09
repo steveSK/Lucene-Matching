@@ -1,73 +1,96 @@
 package matching.lucene.helpers;
 
-import matching.lucene.analyzers.NgramAnalyzer;
-import matching.lucene.comparators.BlockingComparator;
-import matching.lucene.comparators.BruteForceComparator;
-import matching.lucene.comparators.LuceneSpellCheckerComparator;
+
+import matching.lucene.comparators.StringComparatorFactory;
+import matching.lucene.comparators.StringComparatorType;
+import matching.lucene.comparators.StringSimiliratyComparator;
 import matching.lucene.utils.LuceneUtils;
 import matching.lucene.utils.RecordToMatch;
-import matching.lucene.distances.NGramDistance;
-import matching.lucene.comparators.StringSimiliratyComparator;
-import matching.lucene.utils.SystemConstants;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.*;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.*;
+import org.apache.lucene.search.spell.StringDistance;
 import org.apache.lucene.store.FSDirectory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by stefan on 9/20/16.
  */
 public class SearchHelper {
 
+    private static Logger logger = LoggerFactory.getLogger(SearchHelper.class);
 
     private final double minimumMatchRatio;
     private final String indexDirectoryPath;
     private final List<String> fieldsToCheck;
     private final String blockField;
     private final int topResults = 10;
+    private final StringComparatorType stringComparatorType;
+    private final StringDistance stringDistance;
+    private final Analyzer searchAnalyzer;
+
     private IndexSearcher searcher;
-    private final Analyzer analyzer;
-    private  StringSimiliratyComparator spellChecker;
-    private boolean blocking;
+    private StringSimiliratyComparator stringComparator;
+    private boolean supportSpellChecker;
+    private boolean isInitialized;
 
-
-    public SearchHelper(String indexDirectoryPath, List<String> fieldsToCheck, Analyzer analyzer, double minimumMatchRatio,boolean blocking, String blockField) throws IOException {
-        this.indexDirectoryPath = indexDirectoryPath;
-        this.fieldsToCheck = fieldsToCheck;
-        this.analyzer = analyzer;
-        this.blockField = blockField;
-        this.minimumMatchRatio = minimumMatchRatio;
-        blocking = true;
+    public SearchHelper(String indexDirectoryPath, Analyzer searchAnalyzer, double minimumMatchRatio) throws IOException {
+        this(indexDirectoryPath,searchAnalyzer,minimumMatchRatio,null,null,null,null);
     }
 
-    public void init()  throws IOException{
+
+    public SearchHelper(String indexDirectoryPath, Analyzer searchAnalyzer,double minimumMatchRatio,  StringDistance stringDistance, List<String> fieldsToCheck, StringComparatorType stringComparatorType, String blockField) throws IOException {
+        this.indexDirectoryPath = indexDirectoryPath;
+        this.fieldsToCheck = fieldsToCheck;
+        this.stringDistance = stringDistance;
+        this.stringComparatorType = stringComparatorType;
+        this.searchAnalyzer = searchAnalyzer;
+        this.blockField = blockField;
+        this.minimumMatchRatio = minimumMatchRatio;
+        supportSpellChecker = true;
+    }
+
+    public void init() throws IOException {
         //create the reader
         IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(indexDirectoryPath).toPath()));
         BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
-        Map<String,List<String>> blockingDict = LuceneUtils.createBlocksDictionary(fieldsToCheck,reader,blockField);
-        List<String> words = LuceneUtils.readIndexField(fieldsToCheck,reader);
         searcher = new IndexSearcher(reader);
-        //choose which comparator to use
-        this.spellChecker = new BlockingComparator(blockingDict, new NGramDistance(analyzer, new NgramAnalyzer(2, 2)));
+        if(supportSpellChecker) {
+            stringComparator = getComparator(stringComparatorType, reader);
+        }
+        isInitialized = true;
     }
 
 
-    public TopDocs search(String text,String field) throws IOException {
-        return searcher.search(buildBooleanQuery(text,field), topResults);
+    public TopDocs search(String text, String field) throws IOException {
+        if (!isInitialized) {
+            throw new IllegalStateException("Search Helper is not initialized");
+        }
+        return searcher.search(buildSearchQuery(text, field), topResults);
     }
 
-    public TopDocs searchWithSpellchecker(String text,String blockingKey) throws IOException {
-       List<String> composedNames = spellChecker.suggestSimilar(text.toLowerCase(),blockingKey, (float) minimumMatchRatio);
+    public TopDocs searchWithSpellchecker(RecordToMatch recordToMatch) throws IOException {
+        if (!isInitialized) {
+            throw new IllegalStateException("Search Helper is not initialized");
+        }
+        if(!supportSpellChecker){
+            throw new IllegalStateException("Spell Checker was not initialized");
+        }
+        List<String> composedNames = stringComparator.suggestSimilar(recordToMatch, (float) minimumMatchRatio);
         BooleanQuery finalQuery = new BooleanQuery();
-        if(composedNames.size() != 0) {
+        if (composedNames.size() != 0) {
             for (int a = 0; a < composedNames.size(); a++) {
-                for(String field : fieldsToCheck) {
+                for (String field : fieldsToCheck) {
                     String value = LuceneUtils.removeSpecialCharecters(composedNames.get(a)).toLowerCase();
                     PrefixQuery prefixQuery = new PrefixQuery(new Term(field, value));
                     finalQuery.add(prefixQuery, BooleanClause.Occur.SHOULD);
@@ -76,23 +99,25 @@ public class SearchHelper {
             TopDocs result = searcher.search(finalQuery, topResults);
             return result;
         }
-        return new TopDocs(0,new ScoreDoc[0],0);
+        return new TopDocs(0, new ScoreDoc[0], 0);
     }
 
-    public Document getDocument(ScoreDoc scoreDoc)
-            throws CorruptIndexException, IOException{
+    public Document getDocument(ScoreDoc scoreDoc) throws IOException {
+        if (!isInitialized) {
+            throw new IllegalStateException("Search Helper is not initialized");
+        }
         return searcher.doc(scoreDoc.doc);
     }
 
 
-    private Query buildBooleanQuery(String string, String field) throws IOException {
-        List<List<String>> terms = LuceneUtils.parseKeywords(analyzer,field,string);
+    private Query buildSearchQuery(String string, String field) throws IOException {
+        List<List<String>> terms = LuceneUtils.parseKeywords(searchAnalyzer,field, string);
         BooleanQuery queryBuilder = new BooleanQuery();
-        for(List<String> list : terms){
+        for (List<String> list : terms) {
             BooleanQuery subBuilder = new BooleanQuery();
-            for(String term : list){
+            for (String term : list) {
                 PhraseQuery phrase = new PhraseQuery();
-                phrase.add(new Term(field,term));
+                phrase.add(new Term(field, term));
                 subBuilder.add(new BooleanClause(phrase, BooleanClause.Occur.SHOULD));
             }
             long minimumMatch = Math.round(list.size() * minimumMatchRatio);
@@ -102,30 +127,21 @@ public class SearchHelper {
         return queryBuilder;
     }
 
-    public Map<String,TopDocs> matchAgainstFile(String toMatchFile) throws IOException {
-        try {
-            Map<String,TopDocs> matchingResults = new HashMap<>();
-            List<RecordToMatch> valuestoMatch = LuceneUtils.readFileWithBlockingCriteria(toMatchFile,"\\|",true);
-         //   List<RecordToMatch> valuestoMatch = LuceneUtils.readFile(toMatchFile,true);
-            int i = 0;
-            for(RecordToMatch record : valuestoMatch){
-                if(!record.getValueToMatch().isEmpty()) {
-                    System.out.println("Matching record " + i + ": " + record.getValueToMatch());
-                    TopDocs res = searchWithSpellchecker(record.getValueToMatch(),record.getBlockingCriteria());
-                    if (res.totalHits > 0) {
-                        matchingResults.put(record.getValueToMatch(),res);
-                    }
-                }
-                i++;
-            }
-            return matchingResults;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return null;
+    private StringSimiliratyComparator getComparator(StringComparatorType type, IndexReader reader) throws IOException {
+        switch (type) {
+            case BLOCKING:
+                Map<String, List<String>> blockingDict = LuceneUtils.createBlocksDictionary(fieldsToCheck, reader, blockField);
+                return StringComparatorFactory.blockingComparator(blockingDict, stringDistance);
+            case LUCENE:
+                return StringComparatorFactory.luceneSpellChecker(indexDirectoryPath, stringDistance);
+            case BRUTEFORCE:
+                List<String> words = LuceneUtils.readIndexField(fieldsToCheck, reader);
+                return StringComparatorFactory.bruteForce(words, stringDistance);
+            default:
+                throw new IllegalStateException(type + " is not supported");
+
         }
     }
-
-
 
 
 }

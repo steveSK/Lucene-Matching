@@ -1,5 +1,6 @@
 package matching.lucene.comparators;
 
+import matching.lucene.utils.RecordToMatch;
 import org.apache.lucene.search.spell.SpellChecker;
 import org.apache.lucene.search.spell.StringDistance;
 import org.apache.lucene.store.FSDirectory;
@@ -23,8 +24,8 @@ public class LuceneSpellCheckerComparator implements StringSimiliratyComparator 
     }
 
     @Override
-    public List<String> suggestSimilar(String word, String blockingKey, float accuracy) throws IOException {
-        return Arrays.asList(spellChecker.suggestSimilar(word, NUM_SUG, accuracy));
+    public List<String> suggestSimilar(RecordToMatch recordToMatch, float accuracy) throws IOException {
+        return Arrays.asList(spellChecker.suggestSimilar(recordToMatch.getValueToMatch(), NUM_SUG, accuracy));
     }
 }
 

@@ -2,7 +2,6 @@ package matching.lucene.distances;
 
 import matching.lucene.utils.DistanceUtils;
 import matching.lucene.utils.LuceneUtils;
-import matching.lucene.utils.SystemConstants;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.spell.StringDistance;
 

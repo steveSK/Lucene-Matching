@@ -1,5 +1,7 @@
 package matching.lucene.comparators;
 
+import matching.lucene.utils.RecordToMatch;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -8,5 +10,5 @@ import java.util.List;
  */
 public interface StringSimiliratyComparator {
 
-    List<String> suggestSimilar(String word, String blockingKey, float accuracy) throws IOException;
+    List<String> suggestSimilar(RecordToMatch recordToMatch, float accuracy) throws IOException;
 }

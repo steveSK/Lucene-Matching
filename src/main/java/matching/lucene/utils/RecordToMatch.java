@@ -13,6 +13,11 @@ public class RecordToMatch {
         this.blockingCriteria = blockingCriteria;
     }
 
+    public RecordToMatch(String valueToMatch) {
+        this.valueToMatch = valueToMatch;
+        this.blockingCriteria = "";
+    }
+
     public String getValueToMatch() {
         return valueToMatch;
     }
@@ -21,3 +26,4 @@ public class RecordToMatch {
         return blockingCriteria;
     }
 }
+
